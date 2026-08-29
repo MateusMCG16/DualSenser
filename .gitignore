@@ -1,0 +1,72 @@
+# =========================================================================
+# DualSenser - .gitignore
+# =========================================================================
+
+# -------------------------------------------------------------------------
+# Logs & Arquivos de Execução Local
+# -------------------------------------------------------------------------
+Logs/
+**/Logs/
+*.log
+*.log.*
+TestResults/
+[Dd]ebug/
+[Rr]elease/
+
+# -------------------------------------------------------------------------
+# .NET / C# Build & Artefatos
+# -------------------------------------------------------------------------
+bin/
+obj/
+**/bin/
+**/obj/
+*.suo
+*.user
+*.userprefs
+*.userosscache
+*.sln.docstates
+*.dll
+*.exe
+*.pdb
+*.cache
+*.rsp
+
+# -------------------------------------------------------------------------
+# IDEs & Editores (Visual Studio, Rider, VS Code)
+# -------------------------------------------------------------------------
+.vs/
+.idea/
+*.swp
+*.lock
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# -------------------------------------------------------------------------
+# Android & Gradle (para a fase do app mobile)
+# -------------------------------------------------------------------------
+.gradle/
+build/
+**/build/
+local.properties
+*.apk
+*.aab
+*.ap_
+.cxx/
+captures/
+.navigation/
+*.iml
+.android/
+
+# -------------------------------------------------------------------------
+# Sistema Operacional
+# -------------------------------------------------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.AppleDouble
+.LSOverride

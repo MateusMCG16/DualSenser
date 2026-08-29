@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="DualSenser.Service/DualSenser.Service.csproj" />
+  <Project Path="DualSenser.Tests/DualSenser.Tests.csproj" />
+</Solution>
