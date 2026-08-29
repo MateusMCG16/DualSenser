@@ -20,4 +20,19 @@ public class LoggerConfigTests
         string expectedParent = Path.Combine(LoggerConfig.GetRootDirectory(), "Logs");
         Assert.Equal(expectedParent, logsDir);
     }
+
+    [Fact]
+    public void ConfigureLogger_InitializesWithoutException()
+    {
+        // Arrange
+        var configWithActivity = new AppConfig { ShowControllerActivity = true };
+        var configWithoutActivity = new AppConfig { ShowControllerActivity = false };
+
+        // Act & Assert (não deve lançar exceção ao configurar em ambos os modos)
+        var exception1 = Record.Exception(() => LoggerConfig.ConfigureLogger(configWithActivity));
+        var exception2 = Record.Exception(() => LoggerConfig.ConfigureLogger(configWithoutActivity));
+
+        Assert.Null(exception1);
+        Assert.Null(exception2);
+    }
 }
