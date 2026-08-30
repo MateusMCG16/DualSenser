@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Threading;
@@ -44,7 +46,6 @@ public sealed class UdpBeaconService : BackgroundService
         using var udpClient = new UdpClient();
         udpClient.EnableBroadcast = true;
 
-        var targetEndpoint = new IPEndPoint(IPAddress.Broadcast, _config.UdpBeaconPort);
         string serverName = Environment.MachineName;
 
         while (!stoppingToken.IsCancellationRequested)
@@ -60,10 +61,23 @@ public sealed class UdpBeaconService : BackgroundService
                 );
 
                 byte[] data = JsonSerializer.SerializeToUtf8Bytes(payload, JsonOptions);
-                await udpClient.SendAsync(data, data.Length, targetEndpoint);
 
-                _logger.LogDebug("Beacon UDP emitido para {Endpoint} com payload do servidor '{ServerName}'.", 
-                    targetEndpoint, serverName);
+                // Envia para o broadcast global 255.255.255.255
+                await udpClient.SendAsync(data, data.Length, new IPEndPoint(IPAddress.Broadcast, _config.UdpBeaconPort));
+
+                // Envia também para os endereços de broadcast específicos de cada placa de rede IPv4 ativa
+                var broadcastAddresses = GetDirectedBroadcastAddresses();
+                foreach (var directedBroadcast in broadcastAddresses)
+                {
+                    try
+                    {
+                        await udpClient.SendAsync(data, data.Length, new IPEndPoint(directedBroadcast, _config.UdpBeaconPort));
+                    }
+                    catch { }
+                }
+
+                _logger.LogDebug("Beacon UDP emitido para {Count} alvos na porta {Port} com servidor '{ServerName}'.", 
+                    broadcastAddresses.Count + 1, _config.UdpBeaconPort, serverName);
             }
             catch (OperationCanceledException)
             {
@@ -85,5 +99,45 @@ public sealed class UdpBeaconService : BackgroundService
         }
 
         _logger.LogInformation("Serviço de descoberta UDP Beacon finalizado.");
+    }
+
+    private static List<IPAddress> GetDirectedBroadcastAddresses()
+    {
+        var result = new List<IPAddress>();
+
+        try
+        {
+            foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (ni.OperationalStatus != OperationalStatus.Up ||
+                    ni.NetworkInterfaceType == NetworkInterfaceType.Loopback)
+                {
+                    continue;
+                }
+
+                var ipProps = ni.GetIPProperties();
+                foreach (var unicast in ipProps.UnicastAddresses)
+                {
+                    if (unicast.Address.AddressFamily == AddressFamily.InterNetwork &&
+                        unicast.IPv4Mask != null &&
+                        !IPAddress.IsLoopback(unicast.Address))
+                    {
+                        byte[] ipBytes = unicast.Address.GetAddressBytes();
+                        byte[] maskBytes = unicast.IPv4Mask.GetAddressBytes();
+                        byte[] broadcastBytes = new byte[ipBytes.Length];
+
+                        for (int i = 0; i < ipBytes.Length; i++)
+                        {
+                            broadcastBytes[i] = (byte)(ipBytes[i] | ~maskBytes[i]);
+                        }
+
+                        result.Add(new IPAddress(broadcastBytes));
+                    }
+                }
+            }
+        }
+        catch { }
+
+        return result;
     }
 }

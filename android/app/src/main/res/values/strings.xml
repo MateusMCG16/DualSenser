@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DualSenser</string>
+    <string name="status_title">Status</string>
+    <string name="status_discharging">Descarregando</string>
+    <string name="status_charging">Carregando</string>
+    <string name="status_full">Carga Completa</string>
+    <string name="status_disconnected">Desconectado</string>
+    <string name="status_searching">Buscando PC na rede local…</string>
+    <string name="channel_name_battery">Monitor de Bateria DualSense</string>
+    <string name="channel_desc_battery">Exibe o status e percentual da bateria do controle em tempo real.</string>
+    <string name="channel_name_alert">Alertas de Bateria Crítica</string>
+    <string name="channel_desc_alert">Emite avisos e vibração quando a bateria estiver baixa.</string>
+</resources>
