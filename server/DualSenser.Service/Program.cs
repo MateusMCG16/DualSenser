@@ -5,6 +5,7 @@ using DualSenser.Service.Hid;
 using DualSenser.Service.Models.Network;
 using DualSenser.Service.Network;
 using DualSenser.Service.Services;
+using DualSenser.Service.Tray;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -27,6 +28,12 @@ public class Program
             Log.Information("Iniciando o host do serviço DualSenser...");
 
             var builder = WebApplication.CreateBuilder(args);
+
+            // Encerramento ágil em caso de Ctrl+C (2 segundos máximo)
+            builder.Services.Configure<HostOptions>(opts =>
+            {
+                opts.ShutdownTimeout = TimeSpan.FromSeconds(2);
+            });
 
             // Configurar Kestrel para escutar em todas as interfaces de rede na porta definida
             builder.WebHost.UseKestrel(options =>
@@ -56,6 +63,12 @@ public class Program
             if (config.EnableUdpBeacon)
             {
                 builder.Services.AddHostedService<UdpBeaconService>();
+            }
+
+            // Registrar ícone na bandeja do sistema (Windows System Tray)
+            if (OperatingSystem.IsWindows())
+            {
+                builder.Services.AddHostedService<SystemTrayService>();
             }
 
             var app = builder.Build();

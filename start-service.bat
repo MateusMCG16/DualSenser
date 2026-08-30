@@ -1,9 +1,16 @@
 @echo off
+title DualSenser Service
 cd /d "%~dp0server\DualSenser.Service"
-echo Iniciando DualSenser Service...
-dotnet run
+
+echo =======================================================
+echo              DualSenser - Iniciando Servico            
+echo =======================================================
+echo.
+echo Pressione CTRL+C para encerrar o servico a qualquer momento.
+echo.
+
+dotnet run --no-launch-profile
 if %ERRORLEVEL% NEQ 0 (
     echo.
-    echo Erro ao executar o servico.
+    echo Servico encerrado.
 )
-pause

@@ -172,10 +172,7 @@ public sealed class DualSenseWebSocketManager : IDualSenseWebSocketManager
         {
             try
             {
-                if (socket.State == WebSocketState.Open)
-                {
-                    socket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "Servidor encerrando", CancellationToken.None).GetAwaiter().GetResult();
-                }
+                socket.Abort();
                 socket.Dispose();
             }
             catch { }

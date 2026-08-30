@@ -72,7 +72,6 @@ public sealed class DualSenseHidReader : IDualSenseHidReader
                 IntPtr detailBuffer = Marshal.AllocHGlobal((int)requiredSize);
                 try
                 {
-                    // No Windows 64-bit o cbSize do header da struct SP_DEVICE_INTERFACE_DETAIL_DATA é 8, no 32-bit é 5 ou 6
                     int cbSize = (IntPtr.Size == 8) ? 8 : 5;
                     Marshal.WriteInt32(detailBuffer, cbSize);
 
@@ -86,10 +85,9 @@ public sealed class DualSenseHidReader : IDualSenseHidReader
                             continue;
                         }
 
-                        // Abre handle temporário em modo de consulta para verificar VID e PID
                         using var queryHandle = NativeMethods.CreateFile(
                             devicePath,
-                            0, // Query access sem bloqueio
+                            0,
                             NativeConstants.FILE_SHARE_READ | NativeConstants.FILE_SHARE_WRITE,
                             IntPtr.Zero,
                             NativeConstants.OPEN_EXISTING,
@@ -149,6 +147,11 @@ public sealed class DualSenseHidReader : IDualSenseHidReader
         IsRunning = true;
         _logger.LogInformation("Iniciando monitoramento de hardware HID do DualSense...");
 
+        using var reg = cancellationToken.Register(() =>
+        {
+            Stop();
+        });
+
         while (!cancellationToken.IsCancellationRequested && IsRunning)
         {
             try
@@ -184,10 +187,16 @@ public sealed class DualSenseHidReader : IDualSenseHidReader
                 _logger.LogDebug(ex, "Exceção transitória no ciclo de conexão HID.");
             }
 
-            // Intervalo de escaneamento quando desconectado
-            if (CurrentDevice == null && !cancellationToken.IsCancellationRequested)
+            if (CurrentDevice == null && !cancellationToken.IsCancellationRequested && IsRunning)
             {
-                await Task.Delay(2000, cancellationToken);
+                try
+                {
+                    await Task.Delay(2000, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
             }
         }
 
@@ -215,10 +224,9 @@ public sealed class DualSenseHidReader : IDualSenseHidReader
                 return false;
             }
 
-            // Se conectado via Bluetooth, efetuar handshake para ativar o Report 0x31
             if (device.ConnectionType == ConnectionType.Bluetooth)
             {
-                Thread.Sleep(200); // Delay de estabilização do driver Bluetooth
+                Thread.Sleep(100);
                 ActivateBluetoothExtendedMode(_deviceHandle);
             }
 
@@ -252,7 +260,7 @@ public sealed class DualSenseHidReader : IDualSenseHidReader
             }
 
             _logger.LogDebug("Tentativa {Attempt}/3 do handshake Bluetooth falhou. Aguardando retentativa...", attempt);
-            Thread.Sleep(150);
+            Thread.Sleep(100);
         }
 
         _logger.LogWarning("Não foi possível enviar Feature Report 0x05 de ativação Bluetooth. O controle pode permanecer em modo simples.");
@@ -265,6 +273,11 @@ public sealed class DualSenseHidReader : IDualSenseHidReader
             : NativeConstants.UsbReport01Size;
 
         byte[] buffer = new byte[bufferSize];
+
+        using var loopReg = cancellationToken.Register(() =>
+        {
+            CleanupHandle();
+        });
 
         try
         {
@@ -309,6 +322,10 @@ public sealed class DualSenseHidReader : IDualSenseHidReader
         catch (OperationCanceledException)
         {
             // Cancelamento gracioso
+        }
+        catch (ObjectDisposedException)
+        {
+            // Stream fechado durante o shutdown
         }
         catch (IOException ioEx)
         {
@@ -360,7 +377,11 @@ public sealed class DualSenseHidReader : IDualSenseHidReader
     public void Stop()
     {
         IsRunning = false;
-        _readerCts?.Cancel();
+        try
+        {
+            _readerCts?.Cancel();
+        }
+        catch { }
         CleanupHandle();
     }
 
