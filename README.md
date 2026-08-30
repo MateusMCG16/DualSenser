@@ -101,8 +101,9 @@ O **DualSenser** é um ecossistema completo composto por um **serviço em segund
   * Detecção de estados de energia: `Discharging`, `Charging`, `Full` e anomalias de temperatura/voltagem.
 
 * 🖥️ **Ícone na Bandeja do Windows (System Tray):**
-  * Ícone nativo ao lado do relógio do Windows com **tooltip dinâmico** exibindo o nível de bateria ao passar o mouse.
-  * **Menu de contexto completo** ao clicar com o botão direito: status da bateria, tipo de conexão, aparelhos mobile conectados, atalho para abrir `config.ini`, atalho para abrir a pasta de `Logs/` e opção para encerrar o serviço.
+  * Ícone oficial em alto contraste com **fundo branco sólido** ao lado do relógio do Windows.
+  * **Tooltip dinâmico** exibindo o nível de bateria e conexão em tempo real ao passar o cursor.
+  * **Menu de contexto interativo (Botão Direito):** status da bateria, tipo de conexão, aparelhos mobile conectados, atalhos rápidos para abrir `config.ini`, abrir a pasta de `Logs/` e opção para encerrar o serviço.
   * **Notificações Balloon nativas do Windows** quando a bateria entrar em nível crítico ($\le 20\%$).
 
 * 📱 **Aplicativo Android Minimalista:**
@@ -119,6 +120,9 @@ O **DualSenser** é um ecossistema completo composto por um **serviço em segund
 * 📳 **Segundo Plano & Alertas Táteis no Celular:**
   * `Foreground Service` que mantém o app ativo mesmo com a tela do smartphone desligada.
   * Notificação contínua na barra do sistema com a porcentagem atual e vibração háptica nos limiares $\le 20\%$, $\le 10\%$, $\le 5\%$.
+
+* ⚡ **Encerramento Instantâneo & Desligamento Gracioso:**
+  * Cancelamento imediato no `CTRL + C` sem travar em loops de socket ou I/O HID pendente.
 
 ---
 
@@ -210,6 +214,7 @@ DualSenser/
 │   │   ├── Hid/ (DualSenseHidReader, DualSenseReportParser, Native)
 │   │   ├── Models/ (BatteryState, DeviceInfo, InputState, Network DTOs)
 │   │   ├── Network/ (DualSenseWebSocketManager, UdpBeaconService)
+│   │   ├── Resources/ (app_icon.ico, app_icon.png)
 │   │   ├── Tray/ (SystemTrayService, ShellNotifyIconNative)
 │   │   └── Services/ (DualSenseMonitorWorker)
 │   └── DualSenser.Tests/               # 34 Testes Unitários Automatizados (xUnit)
@@ -249,6 +254,11 @@ Basta dar um duplo clique no arquivo [`start-service.bat`](file:///c:/Users/Mate
 .\start-service.bat
 ```
 
+Para rodar a suíte de testes unitários:
+```bash
+dotnet test server/DualSenser.slnx
+```
+
 ### 2. Compilar o Aplicativo Android (Gerar APK)
 Basta dar um duplo clique no arquivo [`build-app.bat`](file:///c:/Users/Mateus/Documents/Code/DualSenser/build-app.bat) ou executar no terminal:
 
@@ -268,7 +278,7 @@ Basta dar um duplo clique no arquivo [`build-app.bat`](file:///c:/Users/Mateus/D
 - [x] **Fase 4: Sistema de Notificações em Segundo Plano & Vibração (Concluído)**
 - [x] **Fase 5: Automação de Build (.bat) e Geração de APK (Concluído)**
 - [x] **Fase 6: Identidade Visual e Nova Logo Oficial Integrada (Concluído)**
-- [x] **Fase 7: Ícone na Bandeja do Sistema do Windows (System Tray) (Concluído)**
+- [x] **Fase 7: Ícone na Bandeja do Sistema do Windows (System Tray) com Fundo Branco (Concluído)**
 
 ---
 
