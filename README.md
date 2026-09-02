@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/PlayStation%205-DualSense%20%2F%20Edge-003791?style=for-the-badge&logo=playstation&logoColor=white" alt="PS5 DualSense" />
   <img src="https://img.shields.io/badge/Network-Directed%20UDP%20Beacon-FF6F00?style=for-the-badge&logo=fastapi&logoColor=white" alt="UDP Beacon" />
   <img src="https://img.shields.io/badge/Logging-Serilog-4A90E2?style=for-the-badge&logo=buffer&logoColor=white" alt="Serilog" />
-  <img src="https://img.shields.io/badge/Tests-xUnit%20(34%20Passed)-28A745?style=for-the-badge&logo=xunit&logoColor=white" alt="xUnit Tests" />
+  <img src="https://img.shields.io/badge/Tests-xUnit%20(30%20Passed)-28A745?style=for-the-badge&logo=xunit&logoColor=white" alt="xUnit Tests" />
 </p>
 
 <br />
@@ -26,7 +26,7 @@
   <a href="#-funcionalidades">Funcionalidades</a> •
   <a href="#-bandeja-do-sistema-windows-system-tray">System Tray</a> •
   <a href="#-aplicativo-android-kotlin--jetpack-compose">App Android</a> •
-  <a href="#-sistema-de-logs-e-modos-de-opera%C3%A7%C3%A3o">Sistema de Logs</a> •
+  <a href="#-sistema-de-logs">Sistema de Logs</a> •
   <a href="#-endpoints-e-rede">Endpoints & Rede</a> •
   <a href="#-estrutura-do-reposit%C3%B3rio">Estrutura</a> •
   <a href="#-como-executar-e-compilar">Como Executar & Compilar</a> •
@@ -87,7 +87,7 @@ O **DualSenser** é um ecossistema completo composto por um **serviço em segund
     <td align="center" width="25%">
       <img src="https://img.icons8.com/fluency/48/console.png" width="48" height="48" alt="Serilog"/><br/>
       <b>Serilog</b><br/>
-      <sub>Sinks dedicados para telemetria de inputs</sub>
+      <sub>Log diário de rede e status da bateria</sub>
     </td>
   </tr>
 </table>
@@ -172,14 +172,13 @@ Conexão: Bluetooth
 
 ---
 
-## 📝 Sistema de Logs e Modos de Operação
+## 📝 Sistema de Logs
 
-O DualSenser conta com separação inteligente de arquivos de log através do **Serilog**:
+O DualSenser grava logs diários através do **Serilog**:
 
 ```
 Logs/
-├── dualsenser-20260829.log          <-- Log principal do sistema (Rede, Kestrel, Bateria)
-└── dualsenser-activity-20260829.log <-- Log dedicado de inputs (Criado se ShowControllerActivity=true)
+└── dualsenser-20260829.log          <-- Log do sistema (Rede, Kestrel, Bateria)
 ```
 
 ---
@@ -204,20 +203,19 @@ DualSenser/
 │   └── config.ini                      # Arquivo de configuração da aplicação
 │
 ├── Logs/                               # Gerado na inicialização
-│   ├── dualsenser-20260829.log         # Log diário principal do sistema
-│   └── dualsenser-activity-20260829.log# Log diário dedicado de inputs (se ativo)
+│   └── dualsenser-20260829.log         # Log diário do sistema
 │
 ├── server/                             # Servidor Windows (.NET 10 / C#)
 │   ├── DualSenser.slnx                 # Solução .NET
 │   ├── DualSenser.Service/             # Kestrel Web API, WebSockets e Leitura HID
 │   │   ├── Common/ (ConfigManager, LoggerConfig)
 │   │   ├── Hid/ (DualSenseHidReader, DualSenseReportParser, Native)
-│   │   ├── Models/ (BatteryState, DeviceInfo, InputState, Network DTOs)
+│   │   ├── Models/ (BatteryState, DeviceInfo, Network DTOs)
 │   │   ├── Network/ (DualSenseWebSocketManager, UdpBeaconService)
 │   │   ├── Resources/ (app_icon.ico, app_icon.png)
 │   │   ├── Tray/ (SystemTrayService, ShellNotifyIconNative)
 │   │   └── Services/ (DualSenseMonitorWorker)
-│   └── DualSenser.Tests/               # 34 Testes Unitários Automatizados (xUnit)
+│   └── DualSenser.Tests/               # 30 Testes Unitários Automatizados (xUnit)
 │
 ├── android/                            # Aplicativo Nativo Android (Kotlin / Compose)
 │   ├── build.gradle.kts

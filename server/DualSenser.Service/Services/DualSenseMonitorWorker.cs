@@ -18,22 +18,17 @@ public sealed class DualSenseMonitorWorker : BackgroundService
     private readonly IDualSenseWebSocketManager _webSocketManager;
     private readonly AppConfig _config;
     private readonly ILogger<DualSenseMonitorWorker> _logger;
-    private readonly ILogger _activityLogger;
-
-    private DualSenseInputState _previousInputState = DualSenseInputState.Empty;
 
     public DualSenseMonitorWorker(
         IDualSenseHidReader hidReader,
         IDualSenseWebSocketManager webSocketManager,
         AppConfig config,
-        ILogger<DualSenseMonitorWorker> logger,
-        ILoggerFactory loggerFactory)
+        ILogger<DualSenseMonitorWorker> logger)
     {
         _hidReader = hidReader;
         _webSocketManager = webSocketManager;
         _config = config;
         _logger = logger;
-        _activityLogger = loggerFactory.CreateLogger(LoggerConfig.ActivitySourceContext);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -42,26 +37,11 @@ public sealed class DualSenseMonitorWorker : BackgroundService
         _logger.LogInformation("Serviço DualSenser iniciado com sucesso.");
         _logger.LogInformation("Monitorando controles DualSense (Bluetooth e USB)...");
         _logger.LogInformation("Servidor HTTP & WebSockets ativo na porta: {HttpPort}", _config.HttpPort);
-
-        if (_config.ShowControllerActivity)
-        {
-            _logger.LogInformation(">>> [MODO ATIVIDADE ATIVADO] ShowControllerActivity=TRUE");
-            _logger.LogInformation(">>> As ações do controle serão exibidas no terminal e salvas em 'Logs/dualsenser-activity-*.log'.");
-        }
-        else
-        {
-            _logger.LogInformation(">>> [MODO NORMAL] ShowControllerActivity=FALSE (Exibindo logs de rede e status da bateria).");
-        }
         _logger.LogInformation("=================================================");
 
         _hidReader.DeviceConnected += OnDeviceConnected;
         _hidReader.DeviceDisconnected += OnDeviceDisconnected;
         _hidReader.BatteryStateChanged += OnBatteryStateChanged;
-
-        if (_config.ShowControllerActivity)
-        {
-            _hidReader.InputStateChanged += OnInputStateChanged;
-        }
 
         try
         {
@@ -81,11 +61,6 @@ public sealed class DualSenseMonitorWorker : BackgroundService
             _hidReader.DeviceDisconnected -= OnDeviceDisconnected;
             _hidReader.BatteryStateChanged -= OnBatteryStateChanged;
 
-            if (_config.ShowControllerActivity)
-            {
-                _hidReader.InputStateChanged -= OnInputStateChanged;
-            }
-
             _logger.LogInformation("Serviço DualSenser finalizado.");
         }
     }
@@ -94,7 +69,6 @@ public sealed class DualSenseMonitorWorker : BackgroundService
     {
         _logger.LogInformation(">>> DISPOSITIVO CONECTADO: {ModelName} via {ConnectionType} (VID: 0x{VendorId:X4}, PID: 0x{ProductId:X4})",
             device.ModelName, device.ConnectionType, device.VendorId, device.ProductId);
-        _previousInputState = DualSenseInputState.Empty;
 
         // Notificar clientes WebSocket
         var statusDto = ControllerStatusDto.FromState(_hidReader.CurrentState, device);
@@ -104,7 +78,6 @@ public sealed class DualSenseMonitorWorker : BackgroundService
     private void OnDeviceDisconnected()
     {
         _logger.LogInformation("<<< DISPOSITIVO DESCONECTADO. Aguardando reconexão...");
-        _previousInputState = DualSenseInputState.Empty;
 
         // Notificar clientes WebSocket
         _ = _webSocketManager.BroadcastAsync(ControllerStatusDto.Disconnected);
@@ -144,20 +117,5 @@ public sealed class DualSenseMonitorWorker : BackgroundService
         // Notificar clientes WebSocket em tempo real
         var statusDto = ControllerStatusDto.FromState(state, _hidReader.CurrentDevice);
         _ = _webSocketManager.BroadcastAsync(statusDto);
-    }
-
-    private void OnInputStateChanged(DualSenseInputState current)
-    {
-        var diffs = current.GetActivityDifferences(_previousInputState);
-
-        if (diffs.Count > 0)
-        {
-            foreach (var diff in diffs)
-            {
-                // Registra através do logger específico de atividade
-                _activityLogger.LogInformation("[INPUT] {Activity}", diff);
-            }
-            _previousInputState = current;
-        }
     }
 }

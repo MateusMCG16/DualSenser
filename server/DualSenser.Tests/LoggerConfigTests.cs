@@ -25,12 +25,11 @@ public class LoggerConfigTests
     public void ConfigureLogger_InitializesWithoutException()
     {
         // Arrange
-        var configWithActivity = new AppConfig { ShowControllerActivity = true };
-        var configWithoutActivity = new AppConfig { ShowControllerActivity = false };
+        var config = new AppConfig();
 
-        // Act & Assert (não deve lançar exceção ao configurar em ambos os modos)
-        var exception1 = Record.Exception(() => LoggerConfig.ConfigureLogger(configWithActivity));
-        var exception2 = Record.Exception(() => LoggerConfig.ConfigureLogger(configWithoutActivity));
+        // Act & Assert (não deve lançar exceção ao configurar)
+        var exception1 = Record.Exception(() => LoggerConfig.ConfigureLogger(config));
+        var exception2 = Record.Exception(() => LoggerConfig.ConfigureLogger(null));
 
         Assert.Null(exception1);
         Assert.Null(exception2);

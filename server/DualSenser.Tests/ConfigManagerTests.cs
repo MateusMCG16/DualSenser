@@ -22,7 +22,7 @@ public class ConfigManagerTests
     }
 
     [Fact]
-    public void LoadOrCreateConfig_CreatesConfigFileWithShowControllerActivity()
+    public void LoadOrCreateConfig_CreatesConfigFileWithNetworkSettings()
     {
         // Arrange
         string filePath = ConfigManager.GetConfigFilePath();
@@ -35,6 +35,7 @@ public class ConfigManagerTests
         Assert.True(File.Exists(filePath), "O arquivo config.ini deve existir.");
 
         string content = File.ReadAllText(filePath);
-        Assert.Contains("ShowControllerActivity=", content);
+        Assert.Contains("HttpPort=", content);
+        Assert.Contains("EnableUdpBeacon=", content);
     }
 }

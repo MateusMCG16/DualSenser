@@ -7,9 +7,6 @@ namespace DualSenser.Service.Common;
 
 public sealed class AppConfig
 {
-    // [Settings]
-    public bool ShowControllerActivity { get; set; } = false;
-
     // [Network]
     public int HttpPort { get; set; } = 5005;
     public bool EnableUdpBeacon { get; set; } = true;
@@ -78,14 +75,8 @@ public static class ConfigManager
                     string key = line.Substring(0, separatorIndex).Trim();
                     string value = line.Substring(separatorIndex + 1).Trim();
 
-                    // [Settings]
-                    if (key.Equals("ShowControllerActivity", StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (bool.TryParse(value, out bool boolValue))
-                            config.ShowControllerActivity = boolValue;
-                    }
                     // [Network]
-                    else if (key.Equals("HttpPort", StringComparison.OrdinalIgnoreCase))
+                    if (key.Equals("HttpPort", StringComparison.OrdinalIgnoreCase))
                     {
                         if (int.TryParse(value, out int port) && port is > 0 and <= 65535)
                             config.HttpPort = port;
@@ -111,8 +102,8 @@ public static class ConfigManager
             // Garante que o arquivo contenha a estrutura atualizada
             CreateDefaultConfigFile(filePath, config);
 
-            Log.Information("Configuração carregada de {ConfigPath} (HTTP={Port}, UDP={Udp}, ShowActivity={Activity})", 
-                filePath, config.HttpPort, config.EnableUdpBeacon, config.ShowControllerActivity);
+            Log.Information("Configuração carregada de {ConfigPath} (HTTP={Port}, UDP={Udp})",
+                filePath, config.HttpPort, config.EnableUdpBeacon);
         }
         catch (Exception ex)
         {
@@ -128,10 +119,6 @@ public static class ConfigManager
         sb.AppendLine("; ========================================================");
         sb.AppendLine("; DualSenser - Arquivo de Configuracao");
         sb.AppendLine("; ========================================================");
-        sb.AppendLine();
-        sb.AppendLine("[Settings]");
-        sb.AppendLine("; Se true, exibe no log toda atividade do controle (botoes, analogicos, gatilhos e trackpad)");
-        sb.AppendLine($"ShowControllerActivity={config.ShowControllerActivity.ToString().ToLowerInvariant()}");
         sb.AppendLine();
         sb.AppendLine("[Network]");
         sb.AppendLine("; Porta do servidor HTTP e WebSockets para comunicacao com o app Android");

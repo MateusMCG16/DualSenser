@@ -23,12 +23,10 @@ public sealed class DualSenseHidReader : IDualSenseHidReader
     private Task? _readLoopTask;
 
     public event Action<DualSenseBatteryState>? BatteryStateChanged;
-    public event Action<DualSenseInputState>? InputStateChanged;
     public event Action<DualSenseDeviceInfo>? DeviceConnected;
     public event Action? DeviceDisconnected;
 
     public DualSenseBatteryState CurrentState { get; private set; } = DualSenseBatteryState.Disconnected;
-    public DualSenseInputState CurrentInputState { get; private set; } = DualSenseInputState.Empty;
     public DualSenseDeviceInfo? CurrentDevice { get; private set; }
     public bool IsRunning { get; private set; }
 
@@ -311,11 +309,6 @@ public sealed class DualSenseHidReader : IDualSenseHidReader
                             BatteryStateChanged?.Invoke(newState);
                         }
                     }
-
-                    // 2. Processar estado dos Controles/Inputs
-                    var newInputState = DualSenseReportParser.ParseInputState(span, device.ConnectionType);
-                    InputStateChanged?.Invoke(newInputState);
-                    CurrentInputState = newInputState;
                 }
             }
         }
@@ -347,7 +340,6 @@ public sealed class DualSenseHidReader : IDualSenseHidReader
         {
             CurrentDevice = null;
             CurrentState = DualSenseBatteryState.Disconnected;
-            CurrentInputState = DualSenseInputState.Empty;
         }
 
         CleanupHandle();
